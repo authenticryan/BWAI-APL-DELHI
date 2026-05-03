@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import { useStadium } from './context/StadiumContext'
 import { getTeam } from './data/mockData'
 import BottomNav from './components/BottomNav'
+import JudgeBanner from './components/JudgeBanner'
 import AuthScreen from './screens/AuthScreen'
 import GatesScreen from './screens/GatesScreen'
 import MatchSelectorScreen from './screens/MatchSelectorScreen'
@@ -64,7 +65,7 @@ function GatesTab() {
 
 function AudienceLayout() {
   return (
-    <div className="flex flex-col h-screen bg-[#0a0a0a] text-white overflow-hidden">
+    <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden">
       <AppHeader />
       <div className="flex-1 overflow-hidden">
         <Routes>
@@ -86,13 +87,18 @@ export default function App() {
   const { user } = useStadium()
 
   return (
-    <Routes>
-      <Route path="/organizer" element={<OrganizerDashboard />} />
-      {!user ? (
-        <Route path="*" element={<AuthScreen />} />
-      ) : (
-        <Route path="*" element={<AudienceLayout />} />
-      )}
-    </Routes>
+    <div className="flex flex-col h-screen">
+      <JudgeBanner />
+      <div className="flex-1 overflow-hidden">
+        <Routes>
+          <Route path="/organizer" element={<OrganizerDashboard />} />
+          {!user ? (
+            <Route path="*" element={<AuthScreen />} />
+          ) : (
+            <Route path="*" element={<AudienceLayout />} />
+          )}
+        </Routes>
+      </div>
+    </div>
   )
 }
