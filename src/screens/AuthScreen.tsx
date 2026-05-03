@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useStadium } from '../context/StadiumContext'
 import { IPL_TEAMS } from '../data/mockData'
 
@@ -11,7 +11,24 @@ export default function AuthScreen() {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [selected, setSelected] = useState<string | null>(null)
+  const [otpCountdown, setOtpCountdown] = useState(5)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    if (step !== 'otp') return
+    setOtpCountdown(5)
+    const interval = setInterval(() => {
+      setOtpCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval)
+          setStep('team')
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [step])
 
   const handleOtpChange = (i: number, val: string) => {
     if (!/^\d?$/.test(val)) return
@@ -101,52 +118,60 @@ export default function AuthScreen() {
 
           {/* STEP 2 — OTP */}
           {step === 'otp' && (
-            <div className="space-y-5">
-              <div>
-                <h2 className="text-lg font-bold text-white mb-0.5">Verify your number 🔐</h2>
-                <p className="text-sm text-white/40">
-                  A 6-digit code was sent to <span className="text-white/70">{email}</span>
-                </p>
+            <div className="space-y-6 text-center">
+              {/* Animated lock icon */}
+              <div className="flex flex-col items-center gap-3 pt-4">
+                <div className="relative">
+                  <div className="h-20 w-20 rounded-full bg-[#19388A]/30 border-2 border-[#4F91CD]/40 flex items-center justify-center">
+                    <span className="text-4xl">🔐</span>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-green-500/90 border-2 border-[#0a0a0a] flex items-center justify-center">
+                    <span className="text-xs">✓</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold text-white mb-1">Simulating OTP Authentication</h2>
+                  <p className="text-sm text-white/40">
+                    A 6-digit code was sent to <span className="text-white/70">{email}</span>
+                  </p>
+                </div>
               </div>
 
-              {/* OTP inputs */}
+              {/* Fake OTP digits filling in */}
               <div className="flex gap-2 justify-center">
-                {otp.map((digit, i) => (
-                  <input
+                {['4', '2', '7', '8', '3', '1'].map((digit, i) => (
+                  <div
                     key={i}
-                    ref={el => { inputRefs.current[i] = el }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={e => handleOtpChange(i, e.target.value)}
-                    onKeyDown={e => handleOtpKey(i, e)}
-                    className="h-12 w-10 rounded-xl border border-white/15 bg-white/5 text-center text-lg font-bold text-white outline-none focus:border-[#4F91CD]/70 transition-colors"
-                  />
+                    className="h-12 w-10 rounded-xl border border-[#4F91CD]/40 bg-[#19388A]/20 text-center text-lg font-bold text-[#4F91CD] flex items-center justify-center transition-all"
+                    style={{ opacity: i < (5 - otpCountdown) + 1 ? 1 : 0.15 }}
+                  >
+                    {i < (5 - otpCountdown) + 1 ? digit : '•'}
+                  </div>
                 ))}
               </div>
 
-              <div className="rounded-2xl border border-[#4F91CD]/20 bg-[#19388A]/15 px-4 py-3.5">
+              {/* Simulation notice */}
+              <div className="rounded-2xl border border-[#4F91CD]/20 bg-[#19388A]/15 px-4 py-3.5 text-left">
                 <div className="flex items-start gap-3">
-                  <span className="text-lg mt-0.5">💡</span>
+                  <span className="text-base mt-0.5">💡</span>
                   <div>
-                    <p className="text-xs font-semibold text-[#4F91CD] mb-0.5">For the judges</p>
+                    <p className="text-xs font-semibold text-[#4F91CD] mb-0.5">Simulation mode</p>
                     <p className="text-xs text-white/50 leading-relaxed">
-                      We'll integrate phone/email OTP authentication here via Auth0 or Firebase before launch. This flow demonstrates the UX handoff.
+                      This is a demo — OTP auth via Auth0 or Firebase would be integrated at launch. Redirecting in{' '}
+                      <span className="text-white/80 font-semibold">{otpCountdown}s</span>…
                     </p>
                   </div>
                 </div>
               </div>
 
-              <button
-                onClick={() => setStep('team')}
-                className="w-full rounded-xl bg-[#19388A] py-3.5 text-sm font-bold text-white active:scale-95 transition-all border border-[#4F91CD]/30"
-              >
-                Simulate Successful Authentication ✓
-              </button>
-              <button onClick={() => setStep('auth')} className="w-full text-center text-xs text-white/30 py-1">
-                ← Back
-              </button>
+              {/* Progress bar */}
+              <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full bg-[#4F91CD] rounded-full transition-all duration-1000 ease-linear"
+                  style={{ width: `${((5 - otpCountdown) / 5) * 100}%` }}
+                />
+              </div>
             </div>
           )}
 
